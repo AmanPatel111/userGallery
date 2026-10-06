@@ -1,32 +1,29 @@
-import { useState } from 'react';
 import UserList from './components/UserList';
 import AlbumList from './components/AlbumList';
 import PhotoGrid from './components/PhotoGrid';
-import type { Album, User } from './types';
+import { useAppSelector } from './store';
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [album, setAlbum] = useState<Album | null>(null);
-
-  const selectUser = (selected: User) => {
-    setUser(selected);
-    setAlbum(null);
-  };
+  const { selectedUser, selectedAlbum, loading, error } = useAppSelector((state) => state.gallery);
 
   return (
     <div className="app">
-      <header className="topbar">User Gallery</header>
+      <header className="topbar">
+        User Gallery
+        {loading && <span className="status">Loading...</span>}
+        {error && <span className="status">{error}</span>}
+      </header>
       <div className="layout">
-        <UserList selectedId={user?.id} onSelect={selectUser} />
+        <UserList />
         <main className="content">
-          {!user && (
+          {!selectedUser && (
             <div className="empty">
               <h1>Welcome</h1>
               <p>Pick a user from the list to browse their albums and photos.</p>
             </div>
           )}
-          {user && <AlbumList user={user} selectedId={album?.id} onSelect={setAlbum} />}
-          {album && <PhotoGrid album={album} />}
+          {selectedUser && <AlbumList />}
+          {selectedAlbum && <PhotoGrid />}
         </main>
       </div>
     </div>

@@ -1,26 +1,15 @@
-import { useEffect, useState } from 'react';
-import { getAlbumsByUser } from '../api/endpoints';
-import type { Album, User } from '../types';
+import { useEffect } from 'react';
+import { fetchAlbums, selectAlbum } from '../store/gallerySlice';
+import { useAppDispatch, useAppSelector } from '../store';
 
-interface Props {
-  user: User;
-  selectedId?: number;
-  onSelect: (album: Album) => void;
-}
-
-export default function AlbumList({ user, selectedId, onSelect }: Props) {
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default function AlbumList() {
+  const dispatch = useAppDispatch();
+  const { albums, selectedUser, selectedAlbum } = useAppSelector((state) => state.gallery);
+  const user = selectedUser!;
 
   useEffect(() => {
-    setLoading(true);
-    setError('');
-    getAlbumsByUser(user.id)
-      .then(setAlbums)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [user.id]);
+    dispatch(fetchAlbums(user.id));
+  }, [dispatch, user.id]);
 
   return (
     <section className="section">
@@ -37,14 +26,12 @@ export default function AlbumList({ user, selectedId, onSelect }: Props) {
       <h2 className="section-title">
         Albums <span className="count">{albums.length}</span>
       </h2>
-      {loading && <p className="muted">Loading albums...</p>}
-      {error && <p className="error">{error}</p>}
       <div className="album-grid">
         {albums.map((album) => (
           <button
             key={album.id}
-            className={album.id === selectedId ? 'album active' : 'album'}
-            onClick={() => onSelect(album)}
+            className={album.id === selectedAlbum?.id ? 'album active' : 'album'}
+            onClick={() => dispatch(selectAlbum(album))}
           >
             <span className="album-id">Album {album.id}</span>
             <span className="album-title">{album.title}</span>

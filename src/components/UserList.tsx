@@ -1,11 +1,6 @@
-import { useEffect, useState } from 'react';
-import { getUsers } from '../api/endpoints';
-import type { User } from '../types';
-
-interface Props {
-  selectedId?: number;
-  onSelect: (user: User) => void;
-}
+import { useEffect } from 'react';
+import { fetchUsers, selectUser } from '../store/gallerySlice';
+import { useAppDispatch, useAppSelector } from '../store';
 
 const getInitials = (name: string) =>
   name
@@ -15,28 +10,22 @@ const getInitials = (name: string) =>
     .map((part) => part[0])
     .join('');
 
-export default function UserList({ selectedId, onSelect }: Props) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default function UserList() {
+  const dispatch = useAppDispatch();
+  const { users, selectedUser } = useAppSelector((state) => state.gallery);
 
   useEffect(() => {
-    getUsers()
-      .then(setUsers)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   return (
     <aside className="sidebar">
       <h2 className="sidebar-title">Users</h2>
-      {loading && <p className="muted">Loading users...</p>}
-      {error && <p className="error">{error}</p>}
       {users.map((user) => (
         <button
           key={user.id}
-          className={user.id === selectedId ? 'user active' : 'user'}
-          onClick={() => onSelect(user)}
+          className={user.id === selectedUser?.id ? 'user active' : 'user'}
+          onClick={() => dispatch(selectUser(user))}
         >
           <span className="avatar">{getInitials(user.name)}</span>
           <span className="user-text">
